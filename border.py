@@ -54,12 +54,12 @@ class EventRecord(object):
                 raise IOError("Error 404: event not found")
             latest_border = obj['data']['logs'][-1]
             latest_border['metadata'] = {'name': self.name,
+                                         'id': self.id,
                                          'starts': self.starts,
                                          'ends': self.ends}
             return latest_border
         else:
             raise IOError(f"Error {res.status_code}")
-
 
 def get_latest_event_metadata():
     """
@@ -99,12 +99,14 @@ def get_str(d):
     else:
        return d.strftime(format_string_simple)
 
-def format(border):
+def format(border, prev=None):
     starts = get_datetime(border['metadata']['starts'])
     ends = get_datetime(border['metadata']['ends'])
     now = get_japan_time(border['datetime'])
     delta = ends - now
     borders = {int(k): v for k, v in border['borders'].items()}
+    if prev:
+        prev = {int(k): v for k, v in prev['borders'].items()}
     starts = get_str(starts)
     ends = get_str(ends)
     timeleft = f'{starts}～{ends}, '
@@ -121,12 +123,16 @@ def format(border):
     maxlen = len(str(max(borders.keys()))) + 8 + len('{:,}'.format(max(borders.values())))
     for n, score in sorted(borders.items()):
         offset = len(str(n)) + 8
-        lines.append(f"{n}位：  {score:>{maxlen-offset},}")
+        line = f"{n}位：  {score:>{maxlen-offset},}"
+        if prev:
+            diff = score - prev[n]
+            line += f" (+{diff:,})"
+        lines.append(line)
     lines.append('```')
     return '\n'.join(lines)
 
 def serialize(border):
     bd2 = deepcopy(border)
-    b2['metadata']['starts'] = border['metadata']['starts'].strftime(format_string)
-    b2['metadata']['ends'] = border['metadata']['ends'].strftime(format_string)
-    return b2
+    bd2['metadata']['starts'] = border['metadata']['starts'].strftime(format_string)
+    bd2['metadata']['ends'] = border['metadata']['ends'].strftime(format_string)
+    return bd2

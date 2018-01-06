@@ -52,9 +52,8 @@ class Fetcher(object):
                     print("The active event doesn't have borde")
                 else:
                     bd = ev.fetch_border()
-                    print('Update succeeds!')
                     await self.bot.update(bd)
-                    self.bot.save_border(bd)
+                    print('Update succeeds!')
             except IOError as ex:
                 print('Connection error: ' + str(ex) + f'. Retry in {retry} seconds.')
                 await asyncio.sleep(retry)
@@ -92,10 +91,16 @@ class BorderBot(commands.Bot):
             await self.send_message(self.get_channel(_id), msg)
 
     def get_latest_border(self):
-        return self.cache.load('border.json').get()
+        return self.cache.load('border.json')
+
+    def get_prev_border(self):
+        return self.cache.load('border-prev.json')
 
     def save_border(self, border):
         self.cache.save('border.json', borderutil.serialize(border))
+
+    def save_prev(self, border):
+        self.cache.save('border-prev.json', border)
 
     def add_channel(self, chan: int) -> bool:
         if chan not in self.channels:
@@ -119,7 +124,12 @@ class BorderBot(commands.Bot):
             return 0
 
     async def update(self, bd):
-        await self.broadcast(borderutil.format(bd))
+        prev = self.get_latest_border().val
+        if prev is None or prev['metadata']['id'] != bd['metadata']['id']:
+            prev = None
+        await self.broadcast(borderutil.format(bd, prev))
+        self.save_border(bd)
+        self.save_prev(prev)
 
 
 def initialize(config):
@@ -163,11 +173,12 @@ def initialize(config):
     @bot.command()
     async def border():
          try:
-             bd = bot.get_latest_border()
+             bd = bot.get_latest_border().get()
          except:
              await bot.say(texts['cache_miss'])
              return
-         await bot.say(borderutil.format(bd))
+         prev = bot.get_prev_border().val
+         await bot.say(borderutil.format(bd, prev))
 
     @bot.command(pass_context=True)
     async def purge(ctx):
