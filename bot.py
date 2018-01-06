@@ -37,7 +37,8 @@ def get_config(path):
         sys.exit(1)
 
 class Fetcher(object):
-    def __init__(self, delay=5, retry=30):
+    def __init__(self, bot, delay=5, retry=30):
+        self.bot = bot
         self.delay = self._parse_delay(delay)
         async def task():
             delta = self._till_next_time(minimum=10)
@@ -52,8 +53,8 @@ class Fetcher(object):
                 else:
                     bd = ev.fetch_border()
                     print('Update succeeds!')
-                    await bot.update(bd)
-                    bot.cache.save('border.json', borderutil.serialize(bd))
+                    await self.bot.update(bd)
+                    self.bot.cache.save('border.json', borderutil.serialize(bd))
             except IOError as ex:
                 print('Connection error: ' + str(ex) + f'. Retry in {retry} seconds.')
                 await asyncio.sleep(retry)
@@ -63,6 +64,7 @@ class Fetcher(object):
 
 
     def _till_next_time(self, minimum=0):
+        return 10
         now = borderutil.get_japan_time()
         s = (now.minute % 30) * 60 + now.second
         return max(1800 - s + self.delay, minimum)
@@ -80,8 +82,8 @@ class Fetcher(object):
         return 10
 
 class BorderBot(commands.Bot):
-    def __init__(self):
-        self.cache = Cache()
+    def __init__(self, cache_root):
+        self.cache = Cache(cache_root)
         self.channels = set(self.cache.load("channels.json").get_or([]))
         super().__init__(description=description, command_prefix="!")
 
@@ -117,8 +119,9 @@ class BorderBot(commands.Bot):
         await self.broadcast(borderutil.format(bd))
 
 
-def initialize():
-    bot = BorderBot()
+def initialize(config):
+    bot = BorderBot(config['cache_root'])
+    fetcher = Fetcher(bot, config['delay'])
     texts = get_config(text_path)['test']
 
     @bot.event
@@ -174,6 +177,5 @@ def initialize():
 
 if __name__ == '__main__':
     config = get_config(config_path)
-    fetcher = Fetcher(config['delay'])
-    bot = initialize()
+    bot = initialize(config)
     bot.run(config['token'])

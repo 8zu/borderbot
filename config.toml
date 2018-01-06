@@ -2,3 +2,5 @@ token = ""
 
 delay = "3m0"
 retry = 30
+
+cache_root = 'cache/'

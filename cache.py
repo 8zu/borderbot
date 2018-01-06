@@ -2,14 +2,6 @@ import os
 import os.path as osp
 import json
 
-cache_root = "cache/"
-
-
-def ensure_cache_root():
-    if not osp.exists(cache_root):
-        os.mkdir(cache_root)
-
-
 class Option(object):
     def __init__(self, val=None):
         self.val = val
@@ -31,16 +23,18 @@ class Option(object):
 
 
 class Cache(object):
-    def __init__(self):
-        ensure_cache_root()
+    def __init__(self, cache_root):
+        self.cache_root = cache_root
+        if not osp.exists(cache_root):
+            os.mkdir(cache_root)
 
     def save(self, key, obj):
-        path = osp.join(cache_root, key)
+        path = osp.join(self.cache_root, key)
         with open(path, "w") as cache:
             json.dump(obj, cache)
 
     def load(self, key) -> Option:
-        path = osp.join(cache_root, key)
+        path = osp.join(self.cache_root, key)
         if not osp.exists(path):
             return Option(None)
         with open(path) as cache:
