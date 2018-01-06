@@ -54,7 +54,7 @@ class Fetcher(object):
                     bd = ev.fetch_border()
                     print('Update succeeds!')
                     await self.bot.update(bd)
-                    self.bot.cache.save('border.json', borderutil.serialize(bd))
+                    self.bot.save_border(bd)
             except IOError as ex:
                 print('Connection error: ' + str(ex) + f'. Retry in {retry} seconds.')
                 await asyncio.sleep(retry)
@@ -93,6 +93,9 @@ class BorderBot(commands.Bot):
 
     def get_latest_border(self):
         return self.cache.load('border.json').get()
+
+    def save_border(self, border):
+        self.cache.save('border.json', borderutil.serialize(border))
 
     def add_channel(self, chan: int) -> bool:
         if chan not in self.channels:

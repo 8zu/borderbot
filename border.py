@@ -3,6 +3,7 @@ from pyquery import PyQuery as pq
 from datetime import datetime
 import pytz
 import json
+from copy import deepcopy
 
 # [theater-gate] website url
 event_url = "https://otomestorm.anzu.work/events"
@@ -125,6 +126,7 @@ def format(border):
     return '\n'.join(lines)
 
 def serialize(border):
-    border['metadata']['starts'] = border['metadata']['starts'].strftime(format_string)
-    border['metadata']['ends'] = border['metadata']['ends'].strftime(format_string)
-    return border
+    bd2 = deepcopy(border)
+    b2['metadata']['starts'] = border['metadata']['starts'].strftime(format_string)
+    b2['metadata']['ends'] = border['metadata']['ends'].strftime(format_string)
+    return b2
