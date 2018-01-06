@@ -63,7 +63,6 @@ class Fetcher(object):
 
 
     def _till_next_time(self, minimum=0):
-        return 10
         now = borderutil.get_japan_time()
         s = (now.minute % 30) * 60 + now.second
         return max(1800 - s + self.delay, minimum)
