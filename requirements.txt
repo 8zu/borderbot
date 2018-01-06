@@ -1,0 +1,5 @@
+discord
+pytz
+pyquery
+requests
+pytoml

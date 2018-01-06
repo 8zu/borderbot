@@ -1,0 +1,11 @@
+[test]
+greet = 'registered!'
+bye = 'good bye!'
+recover = 'hello!'
+cache_miss = 'cache JSON not found'
+
+[jpn]
+greet = 'こんにちわー！{}であります！よろしく！'
+bye = 'バイバイ \(^^)'
+recover = '寝落ちしました、ごめん… (@口@)'
+cache_miss = "なにも覚えない、ごめん… (@@')"
