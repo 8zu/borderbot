@@ -31,7 +31,7 @@ text_path = './translation.toml'
 
 def get_config(path):
     if osp.exists(path):
-        return pytoml.load(open(path))
+        return pytoml.load(open(path, "r", encoding="UTF-8"))
     else:
         logger.error("Missing config file! Shutting down now...")
         sys.exit(1)
@@ -41,6 +41,7 @@ class Fetcher(object):
     def __init__(self, bot, delay=5, retry=30):
         self.bot = bot
         self.delay = self._parse_delay(delay)
+
         async def task():
             delta = self._till_next_time(minimum=10)
             print(f'Next update is scheduled in {delta} seconds.')

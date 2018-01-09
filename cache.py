@@ -30,12 +30,12 @@ class Cache(object):
 
     def save(self, key, obj):
         path = osp.join(self.cache_root, key)
-        with open(path, "w") as cache:
+        with open(path, "w", encoding="UTF-8") as cache:
             json.dump(obj, cache)
 
     def load(self, key) -> Option:
         path = osp.join(self.cache_root, key)
         if not osp.exists(path):
             return Option(None)
-        with open(path) as cache:
+        with open(path, "r", encoding="UTF-8") as cache:
             return Option(json.load(cache))
