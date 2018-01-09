@@ -113,7 +113,7 @@ def format_with(border, prev=None):
     starts = get_str(starts)
     ends = get_str(ends)
     timeleft = f'{starts}～{ends}, '
-    if delta.days > 0:
+    if delta.days >= 0:
         timeleft += f'あと {delta.days} 日 {delta.seconds // 3600} 時間'
     else:
         timeleft += 'イベントが終わりました'
