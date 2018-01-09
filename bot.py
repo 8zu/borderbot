@@ -1,12 +1,12 @@
 import asyncio
 import logging
-import sys
 import os.path as osp
+import sys
+
 import pytoml
+
 import border as borderutil
-from datetime import timedelta
-import threading, time
-from cache import Cache
+from _cache import Cache
 
 try:
     from discord.ext import commands
@@ -36,10 +36,14 @@ def get_config(path):
         logger.error("Missing config file! Shutting down now...")
         sys.exit(1)
 
+
 class Fetcher(object):
-    def __init__(self, bot, delay=5, retry=30):
-        self.bot = bot
+    first_fetch_flag = 1
+
+    def __init__(self, border_bot, delay=5, retry=30):
+        self.bot = border_bot
         self.delay = self._parse_delay(delay)
+
         async def task():
             delta = self._till_next_time(minimum=10)
             print(f'Next update is scheduled in {delta} seconds.')
@@ -49,7 +53,7 @@ class Fetcher(object):
                 if not ev.is_active:
                     print(f'Event {ev.id} is not active at this point.')
                 elif not ev.has_border:
-                    print("The active event doesn't have borde")
+                    print("The active event doesn't have border.")
                 else:
                     bd = ev.fetch_border()
                     await self.bot.update(bd)
@@ -61,13 +65,13 @@ class Fetcher(object):
 
         asyncio.ensure_future(task())
 
-
     def _till_next_time(self, minimum=0):
         now = borderutil.get_japan_time()
         s = (now.minute % 30) * 60 + now.second
         return max(1800 - s + self.delay, minimum)
 
-    def _parse_delay(self, delay):
+    @staticmethod
+    def _parse_delay(delay):
         if type(delay) is int:
             return delay
         if type(delay) is str:
@@ -78,6 +82,7 @@ class Fetcher(object):
                 return int(ms[0])
         logger.error("Delay is not in the right format, using a default of 10 seconds")
         return 10
+
 
 class BorderBot(commands.Bot):
     def __init__(self, cache_root):
@@ -116,7 +121,7 @@ class BorderBot(commands.Bot):
 
     async def purge(self, chan: discord.Channel) -> int:
         if chan.id in self.channels:
-            is_me = lambda m: m.author == self.user
+            is_me = [lambda m: m.author == self.user]
             deleted = await self.purge_from(chan, limit=100, check=is_me)
             return deleted
         else:
@@ -126,69 +131,69 @@ class BorderBot(commands.Bot):
         prev = self.get_latest_border().val
         if prev is None or prev['metadata']['id'] != bd['metadata']['id']:
             prev = None
-        await self.broadcast(borderutil.format(bd, prev))
+        await self.broadcast(borderutil.format_with(bd, prev))
         self.save_border(bd)
         self.save_prev(prev)
 
 
 def initialize(config):
-    bot = BorderBot(config['cache_root'])
-    fetcher = Fetcher(bot, config['delay'])
-    texts = get_config(text_path)['test']
+    border_bot = BorderBot(config['cache_root'])
+    Fetcher(border_bot, config['delay'])
+    texts = get_config(text_path)['jpn']
 
-    @bot.event
+    @border_bot.event
     async def on_ready():
-        servers = len(bot.servers)
-        channels = sum(1 for c in bot.get_all_channels())
-        registered = len(bot.channels)
+        servers = len(border_bot.servers)
+        channels = sum(1 for _ in border_bot.get_all_channels())
+        registered = len(border_bot.channels)
 
         print('--------------')
         print('| Border bot |')
         print('--------------')
         print('Logged in as')
-        print(bot.user.name)
-        print(bot.user.id)
+        print(border_bot.user.name)
+        print(border_bot.user.id)
         print(f'to {servers} servers, {channels} channels')
         print(f'registered to post in {registered} channels')
         print()
 
-        await bot.broadcast(texts['recover'])
+        await border_bot.broadcast(texts['greet'].format(border_bot.user.name))
 
-    @bot.command()
+    @border_bot.command()
     async def add_channel(chan: discord.Channel):
         logger.info(f'Registering channel {chan.name}...')
-        if bot.add_channel(chan.id):
+        if border_bot.add_channel(chan.id):
             logger.info(f'Registered channel {chan.name} to list.')
-            await bot.send_message(bot.get_channel(chan.id), texts["greet"].format(bot.user.name))
+            await border_bot.send_message(border_bot.get_channel(chan.id), texts["greet"].format(border_bot.user.name))
         else:
             logger.info('Channel already registered. Ignored.')
 
-    @bot.command()
+    @border_bot.command()
     async def remove_channel(chan: discord.Channel):
-        logger.info(f'Unregistering channel {chan.name}...')
-        bot.remove_channel(chan.id)
-        await bot.send_message(bot.get_channel(chan.id), texts["bye"])
+        logger.info(f'Unregistered channel {chan.name}...')
+        border_bot.remove_channel(chan.id)
+        await border_bot.send_message(border_bot.get_channel(chan.id), texts["bye"])
 
-    @bot.command()
+    @border_bot.command()
     async def border():
-         try:
-             bd = bot.get_latest_border().get()
-         except:
-             await bot.say(texts['cache_miss'])
-             return
-         prev = bot.get_prev_border().val
-         await bot.say(borderutil.format(bd, prev))
+        try:
+            bd = border_bot.get_latest_border().get()
+        except ValueError:
+            await border_bot.say(texts['cache_miss'])
+            return
+        prev = border_bot.get_prev_border().val
+        await border_bot.say(borderutil.format_with(bd, prev))
 
-    @bot.command(pass_context=True)
+    @border_bot.command(pass_context=True)
     async def purge(ctx):
         chan = ctx.message.channel
-        await bot.purge(chan)
+        deleted = await border_bot.purge(chan)
         logger.info(f'Deleted {len(deleted)} message(s) from channel {chan.name}')
 
-    return bot
+    return border_bot
 
 
 if __name__ == '__main__':
-    config = get_config(config_path)
-    bot = initialize(config)
-    bot.run(config['token'])
+    cfg = get_config(config_path)
+    bot = initialize(cfg)
+    bot.run(cfg['token'])
