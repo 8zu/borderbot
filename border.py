@@ -1,9 +1,9 @@
-import requests as req
-from pyquery import PyQuery as pq
-from datetime import datetime
-import pytz
 import json
 from copy import deepcopy
+from datetime import datetime
+
+import pytz
+import requests as req
 
 # [theater-gate] website url
 event_url = "https://otomestorm.anzu.work/events"
@@ -61,10 +61,9 @@ class EventRecord(object):
         else:
             raise IOError(f"Error {res.status_code}")
 
+
 def get_latest_event_metadata():
     """
-    Accept an event code to pick out the correct record info.
-    :param event_code: MLTD event code
     :return: packaged event info including event title, start time and end time.
     """
     res = req.get(event_url)
@@ -87,19 +86,22 @@ def get_latest_event_metadata():
     else:
         raise IOError(f"Error {res.status_code}")
 
+
 def get_datetime(s):
     if type(s) is str:
         return get_japan_time(s)
     else:
         return s
 
+
 def get_str(d):
     if type(d) is str:
         return d
     else:
-       return d.strftime(format_string_simple)
+        return d.strftime(format_string_simple)
 
-def format(border, prev=None):
+
+def format_with(border, prev=None):
     starts = get_datetime(border['metadata']['starts'])
     ends = get_datetime(border['metadata']['ends'])
     now = get_japan_time(border['datetime'])
@@ -111,15 +113,11 @@ def format(border, prev=None):
     ends = get_str(ends)
     timeleft = f'{starts}～{ends}, '
     if delta.days > 0:
-        timeleft +=  f'あと {delta.days} 日 {delta.seconds // 3600} 時間'
+        timeleft += f'あと {delta.days} 日 {delta.seconds // 3600} 時間'
     else:
         timeleft += 'イベントが終わりました'
 
-    lines = ['```']
-    lines.append(border['metadata']['name'])
-    lines.append(timeleft)
-    lines.append('')
-    lines.append(now.strftime(format_string_simple))
+    lines = ['```', border['metadata']['name'], timeleft, '', now.strftime(format_string_simple)]
     maxlen = len(str(max(borders.keys()))) + 8 + len('{:,}'.format(max(borders.values())))
     for n, score in sorted(borders.items()):
         offset = len(str(n)) + 8
@@ -130,6 +128,7 @@ def format(border, prev=None):
         lines.append(line)
     lines.append('```')
     return '\n'.join(lines)
+
 
 def serialize(border):
     bd2 = deepcopy(border)
