@@ -174,13 +174,13 @@ def initialize(config):
 
     @bot.command()
     async def border():
-         try:
-             bd = bot.get_latest_border().get()
-         except:
-             await bot.say(texts['cache_miss'])
-             return
-         prev = bot.get_prev_border().val
-         await bot.say(borderutil.format_with(bd, prev))
+        try:
+            bd = bot.get_latest_border().get()
+        except:
+            await bot.say(texts['cache_miss'])
+            return
+        prev = bot.get_prev_border().val
+        await bot.say(borderutil.format_with(bd, prev))
 
     @bot.command(pass_context=True)
     async def purge(ctx):

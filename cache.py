@@ -2,6 +2,7 @@ import json
 import os
 import os.path as osp
 
+
 class Option(object):
     def __init__(self, val=None):
         self.val = val

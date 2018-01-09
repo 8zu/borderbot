@@ -1,6 +1,7 @@
 import json
 from copy import deepcopy
 from datetime import datetime
+
 +
 import pytz
 import requests as req
@@ -61,6 +62,7 @@ class EventRecord(object):
         else:
             raise IOError(f"Error {res.status_code}")
 
+
 def get_latest_event_metadata():
     """
     Accept an event code to pick out the correct record info.
@@ -99,7 +101,7 @@ def get_str(d):
     if type(d) is str:
         return d
     else:
-       return d.strftime(format_string_simple)
+        return d.strftime(format_string_simple)
 
 
 def format_with(border, prev=None):
