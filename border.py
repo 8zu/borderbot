@@ -2,7 +2,6 @@ import json
 from copy import deepcopy
 from datetime import datetime
 
-+
 import pytz
 import requests as req
 
@@ -65,8 +64,6 @@ class EventRecord(object):
 
 def get_latest_event_metadata():
     """
-    Accept an event code to pick out the correct record info.
-    :param event_code: MLTD event code
     :return: packaged event info including event title, start time and end time.
     """
     res = req.get(event_url)
@@ -120,11 +117,11 @@ def format_with(border, prev=None):
     else:
         timeleft += 'イベントが終わりました'
 
-    lines = ['```']
-    lines.append(border['metadata']['name'])
-    lines.append(timeleft)
-    lines.append('')
-    lines.append(now.strftime(format_string_simple))
+    lines = ['```',
+             border['metadata']['name'],
+             timeleft,
+             '',
+             now.strftime(format_string_simple)]
     maxlen = len(str(max(borders.keys()))) + 8 + len('{:,}'.format(max(borders.values())))
     for n, score in sorted(borders.items()):
         offset = len(str(n)) + 8
