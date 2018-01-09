@@ -1,9 +1,9 @@
-import requests as req
-from pyquery import PyQuery as pq
-from datetime import datetime
-import pytz
 import json
 from copy import deepcopy
+from datetime import datetime
++
+import pytz
+import requests as req
 
 # [theater-gate] website url
 event_url = "https://otomestorm.anzu.work/events"
@@ -87,11 +87,13 @@ def get_latest_event_metadata():
     else:
         raise IOError(f"Error {res.status_code}")
 
+
 def get_datetime(s):
     if type(s) is str:
         return get_japan_time(s)
     else:
         return s
+
 
 def get_str(d):
     if type(d) is str:
@@ -99,7 +101,8 @@ def get_str(d):
     else:
        return d.strftime(format_string_simple)
 
-def format(border, prev=None):
+
+def format_with(border, prev=None):
     starts = get_datetime(border['metadata']['starts'])
     ends = get_datetime(border['metadata']['ends'])
     now = get_japan_time(border['datetime'])
@@ -111,7 +114,7 @@ def format(border, prev=None):
     ends = get_str(ends)
     timeleft = f'{starts}～{ends}, '
     if delta.days > 0:
-        timeleft +=  f'あと {delta.days} 日 {delta.seconds // 3600} 時間'
+        timeleft += f'あと {delta.days} 日 {delta.seconds // 3600} 時間'
     else:
         timeleft += 'イベントが終わりました'
 
@@ -130,6 +133,7 @@ def format(border, prev=None):
         lines.append(line)
     lines.append('```')
     return '\n'.join(lines)
+
 
 def serialize(border):
     bd2 = deepcopy(border)

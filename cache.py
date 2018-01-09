@@ -1,6 +1,6 @@
+import json
 import os
 import os.path as osp
-import json
 
 class Option(object):
     def __init__(self, val=None):

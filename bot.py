@@ -1,11 +1,11 @@
 import asyncio
 import logging
-import sys
 import os.path as osp
+import sys
+
 import pytoml
+
 import border as borderutil
-from datetime import timedelta
-import threading, time
 from cache import Cache
 
 try:
@@ -36,6 +36,7 @@ def get_config(path):
         logger.error("Missing config file! Shutting down now...")
         sys.exit(1)
 
+
 class Fetcher(object):
     def __init__(self, bot, delay=5, retry=30):
         self.bot = bot
@@ -61,13 +62,13 @@ class Fetcher(object):
 
         asyncio.ensure_future(task())
 
-
     def _till_next_time(self, minimum=0):
         now = borderutil.get_japan_time()
         s = (now.minute % 30) * 60 + now.second
         return max(1800 - s + self.delay, minimum)
 
-    def _parse_delay(self, delay):
+    @staticmethod
+    def _parse_delay(delay):
         if type(delay) is int:
             return delay
         if type(delay) is str:
@@ -78,6 +79,7 @@ class Fetcher(object):
                 return int(ms[0])
         logger.error("Delay is not in the right format, using a default of 10 seconds")
         return 10
+
 
 class BorderBot(commands.Bot):
     def __init__(self, cache_root):
@@ -126,7 +128,7 @@ class BorderBot(commands.Bot):
         prev = self.get_latest_border().val
         if prev is None or prev['metadata']['id'] != bd['metadata']['id']:
             prev = None
-        await self.broadcast(borderutil.format(bd, prev))
+        await self.broadcast(borderutil.format_with(bd, prev))
         self.save_border(bd)
         self.save_prev(prev)
 
@@ -139,7 +141,7 @@ def initialize(config):
     @bot.event
     async def on_ready():
         servers = len(bot.servers)
-        channels = sum(1 for c in bot.get_all_channels())
+        channels = sum(1 for _ in bot.get_all_channels())
         registered = len(bot.channels)
 
         print('--------------')
@@ -177,7 +179,7 @@ def initialize(config):
              await bot.say(texts['cache_miss'])
              return
          prev = bot.get_prev_border().val
-         await bot.say(borderutil.format(bd, prev))
+         await bot.say(borderutil.format_with(bd, prev))
 
     @bot.command(pass_context=True)
     async def purge(ctx):
