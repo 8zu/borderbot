@@ -136,7 +136,7 @@ class BorderBot(commands.Bot):
 def initialize(config):
     bot = BorderBot(config['cache_root'])
     fetcher = Fetcher(bot, config['delay'])
-    texts = get_config(text_path)['test']
+    texts = get_config(text_path)['jpn']
 
     @bot.event
     async def on_ready():
@@ -154,7 +154,7 @@ def initialize(config):
         print(f'registered to post in {registered} channels')
         print()
 
-        await bot.broadcast(texts['recover'])
+        await bot.broadcast(texts['greet'])
 
     @bot.command()
     async def add_channel(chan: discord.Channel):
