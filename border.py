@@ -101,7 +101,10 @@ def get_past_event_border(event_code):
             raise IOError("Error 404: event not found")
         latest_border = obj['data']['logs'][-1]
         er = get_past_event_metadata(event_code)
-        latest_border['metadata'] = {'name': er.name, 'id': er.id, 'starts': er.starts, 'ends': er.ends}
+        latest_border['metadata'] = {'name': er.name,
+                                     'id': er.id,
+                                     'starts': er.starts,
+                                     'ends': er.ends}
         return latest_border
     else:
         raise IOError(f"Error {res.status_code}")
@@ -120,8 +123,10 @@ def get_past_event_metadata(event_code):
                 break
         if not ev:
             raise IOError('Could not find event with border')
-        return EventRecord(ev['event_id'], ev['event_name'],
-                           ev['schedule']['begin_at'], ev['schedule']['end_at'],
+        return EventRecord(ev['event_id'],
+                           ev['event_name'],
+                           ev['schedule']['begin_at'],
+                           ev['schedule']['end_at'],
                            ev['event_type'] in Event_type_with_border)
 
 
