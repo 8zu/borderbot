@@ -134,7 +134,7 @@ def initialize(config):
     async def past_border(event_code):
         try:
             bd = bot.get_past_border(event_code)
-            await bot.say(borderutil.format_with(bd, None))
+            await bot.say(borderutil.format_with(bd))
         except IOError:
             await bot.say(texts['no_border'])
 
