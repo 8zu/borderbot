@@ -4,7 +4,7 @@ Discord 用ミリシタボーダー告知 bot です。
 
 ## インストール
 
-[https://discordapp.com/api/oauth2/authorize?client_id=398096825061474305&permissions=10240&scope=bot](このリンク)をクリック！入れたいサーバーを選択する。
+[このリンク](https://discordapp.com/api/oauth2/authorize?client_id=398096825061474305&permissions=10240&scope=bot)をクリック！入れたいサーバーを選択する。
 
 ## 使い方
 
