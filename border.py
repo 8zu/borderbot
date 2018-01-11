@@ -73,7 +73,7 @@ def get_event_metadata(event_code=None):
             raise IOError("Error 404. Event list not found")
         evs = obj['data']
         ev = None
-        if not event_code:s
+        if not event_code:
             for ev in reversed(evs):
                 if ev['event_type'] in Event_type_with_border:
                     break

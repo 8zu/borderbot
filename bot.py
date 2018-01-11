@@ -6,6 +6,7 @@ import sys
 import pytoml
 
 import border as borderutil
+from cache import Cache
 
 try:
     from discord.ext import commands
