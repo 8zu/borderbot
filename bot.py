@@ -193,6 +193,8 @@ def initialize(config):
             bd = bot.get_past_border(event_code)
             await bot.say(borderutil.format_with(bd))
         except IOError:
+            await bot.say(texts['event_not_found'])
+        except ValueError:
             await bot.say(texts['no_border'])
 
     @bot.command(pass_context=True)

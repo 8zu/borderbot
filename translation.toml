@@ -3,6 +3,7 @@ greet = 'registered!'
 bye = 'good bye!'
 recover = 'hello!'
 cache_miss = 'cache JSON not found'
+event_not_found = '404 event not found!'
 no_border = 'this event does not have border'
 
 [jpn]
@@ -10,4 +11,5 @@ greet = 'こんにちわー！{}であります！よろしく！'
 bye = 'バイバイ \(^^)'
 recover = '寝落ちしました、ごめん… (@口@)'
 cache_miss = "なにも覚えない、ごめん… (@@')"
+event_not_found = 'イベントが見つかりませんでした'
 no_border = 'ごめん！！このイベントのボーダーがありませんでした… (@口@)'
