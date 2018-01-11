@@ -104,6 +104,16 @@ class BorderBot(commands.Bot):
     def save_prev(self, border):
         self.cache.save('border-prev.json', border)
 
+    def get_past_border(self, event_code):
+        filename = f'border-past{event_code}.json'
+        bd = self.cache.load(filename).val
+        if not bd:
+            logger.info(f'Event {event_code} is not in cache, fetch now')
+            ev = borderutil.get_event_metadata(event_code)
+            bd = ev.fetch_border()
+            self.cache.save(filename, borderutil.serialize(bd))
+        return bd
+
     def add_channel(self, chan: int) -> bool:
         if chan not in self.channels:
             self.channels.add(chan)
@@ -116,11 +126,6 @@ class BorderBot(commands.Bot):
         if chan in self.channels:
             self.channels.remove(chan)
             self.cache.save('channels.json', list(self.channels))
-
-    @staticmethod
-    def get_past_border(event_code):
-        ev = borderutil.get_event_metadata(event_code)
-        return ev.fetch_border()
 
     async def purge(self, chan: discord.Channel) -> int:
         if chan.id in self.channels:
