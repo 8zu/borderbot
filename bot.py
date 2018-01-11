@@ -178,24 +178,25 @@ def initialize(config):
         await bot.send_message(bot.get_channel(channel.id), texts["bye"])
 
     @bot.command()
-    async def border():
-        try:
-            bd = bot.get_latest_border().get()
-        except ValueError:
-            await bot.say(texts['cache_miss'])
-            return
-        prev = bot.get_prev_border().val
+    async def border(event_code=None):
+        prev = None
+        if not event_code:
+            try:
+                bd = bot.get_latest_border().get()
+                prev = bot.get_prev_border().val
+            except ValueError:
+                await bot.say(texts['cache_miss'])
+                return
+        else:
+            try:
+                bd = bot.get_past_border(event_code)
+            except IOError:
+                await bot.say(texts['event_not_found'])
+                return
+            except ValueError:
+                await bot.say(texts['no_border'])
+                return
         await bot.say(borderutil.format_with(bd, prev))
-
-    @bot.command()
-    async def past_border(event_code):
-        try:
-            bd = bot.get_past_border(event_code)
-            await bot.say(borderutil.format_with(bd))
-        except IOError:
-            await bot.say(texts['event_not_found'])
-        except ValueError:
-            await bot.say(texts['no_border'])
 
     @bot.command(pass_context=True)
     async def purge(context):
