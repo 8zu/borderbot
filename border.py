@@ -61,10 +61,9 @@ class EventRecord(object):
         else:
             raise IOError(f"Error {res.status_code}")
 
-def get_latest_event_metadata():
+
+def get_event_metadata(event_code=None):
     """
-    Accept an event code to pick out the correct record info.
-    :param event_code: MLTD event code
     :return: packaged event info including event title, start time and end time.
     """
     res = req.get(event_url)
@@ -74,9 +73,16 @@ def get_latest_event_metadata():
             raise IOError("Error 404. Event list not found")
         evs = obj['data']
         ev = None
-        for ev in reversed(evs):
-            if ev['event_type'] in Event_type_with_border:
-                break
+        if not event_code:
+            for ev in reversed(evs):
+                if ev['event_type'] in Event_type_with_border:
+                    break
+        else:
+            p = lambda ev: int(ev['event_id']) == int(event_code)
+            try:
+                ev = list(filter(p, evs))[0]
+            except:
+                pass
         if not ev:
             raise IOError('Could not find event with border')
         return EventRecord(ev['event_id'],
@@ -99,7 +105,7 @@ def get_str(d):
     if type(d) is str:
         return d
     else:
-       return d.strftime(format_string_simple)
+        return d.strftime(format_string_simple)
 
 
 def format_with(border, prev=None):
@@ -118,11 +124,11 @@ def format_with(border, prev=None):
     else:
         timeleft += 'イベントが終わりました'
 
-    lines = ['```']
-    lines.append(border['metadata']['name'])
-    lines.append(timeleft)
-    lines.append('')
-    lines.append(now.strftime(format_string_simple))
+    lines = ['```',
+             border['metadata']['name'],
+             timeleft,
+             '',
+             now.strftime(format_string_simple)]
     maxlen = len(str(max(borders.keys()))) + 8 + len('{:,}'.format(max(borders.values())))
     for n, score in sorted(borders.items()):
         offset = len(str(n)) + 8
