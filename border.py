@@ -123,6 +123,7 @@ def format_with(border, prev=None):
         timeleft += f'あと {delta.days} 日 {delta.seconds // 3600} 時間'
     else:
         timeleft += 'イベントが終わりました'
+        prev = None
 
     lines = ['```',
              border['metadata']['name'],
