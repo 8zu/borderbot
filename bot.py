@@ -178,7 +178,7 @@ def initialize(config):
         print(f'registered to post in {registered} channels')
         print()
 
-        await bot.greet_and_prune(texts['greet'].format(bot.user.name))
+        await bot.greet_and_prune(texts['recover'].format(bot.user.name))
 
     @bot.command(pass_context=True)
     async def add_channel(ctx, channel: discord.Channel):
