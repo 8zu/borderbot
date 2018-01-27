@@ -88,6 +88,16 @@ class BorderBot(commands.Bot):
         self.channels = set(self.cache.load("channels.json").get_or([]))
         super().__init__(description=description, command_prefix="!")
 
+    async def greet_and_prune(self, msg: str):
+        to_be_removed = set()
+        for _id in self.channels:
+            ch = self.get_channel(_id)
+            if ch:
+                await self.send_message(ch, msg)
+            else:
+                to_be_removed.add(_id)
+        self.channels.difference_update(to_be_removed)
+
     async def broadcast(self, msg: str):
         for _id in self.channels:
             await self.send_message(self.get_channel(_id), msg)
@@ -168,7 +178,7 @@ def initialize(config):
         print(f'registered to post in {registered} channels')
         print()
 
-        await bot.broadcast(texts['greet'].format(bot.user.name))
+        await bot.greet_and_prune(texts['greet'].format(bot.user.name))
 
     @bot.command(pass_context=True)
     async def add_channel(ctx, channel: discord.Channel):
