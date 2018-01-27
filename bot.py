@@ -114,6 +114,9 @@ class BorderBot(commands.Bot):
             self.cache.save(filename, borderutil.serialize(bd))
         return bd
 
+    def check_permission(self, ctx) -> bool:
+        return ctx.message.server and ctx.message.author == ctx.message.server.owner
+
     def add_channel(self, chan: int) -> bool:
         if chan not in self.channels:
             self.channels.add(chan)
@@ -129,7 +132,7 @@ class BorderBot(commands.Bot):
 
     async def purge(self, chan: discord.Channel) -> int:
         if chan.id in self.channels:
-            is_me = [lambda m: m.author == self.user]
+            is_me = lambda m: m.author == self.user
             deleted = await self.purge_from(chan, limit=100, check=is_me)
             return deleted
         else:
@@ -167,8 +170,12 @@ def initialize(config):
 
         await bot.broadcast(texts['greet'].format(bot.user.name))
 
-    @bot.command()
-    async def add_channel(channel: discord.Channel):
+    @bot.command(pass_context=True)
+    async def add_channel(ctx, channel: discord.Channel):
+        """チャンネルを通知リストに追加する（所有者限定）"""
+        if not bot.check_permission(ctx):
+            await bot.say(texts['no_permission'])
+            return
         logger.info(f'Registering channel {channel.name}...')
         if bot.add_channel(channel.id):
             logger.info(f'Registered channel {channel.name} to list.')
@@ -176,14 +183,19 @@ def initialize(config):
         else:
             logger.info('Channel already registered. Ignored.')
 
-    @bot.command()
-    async def remove_channel(channel: discord.Channel):
+    @bot.command(pass_context=True)
+    async def remove_channel(ctx, channel: discord.Channel):
+        """チャンネルを通知リストから外す（所有者限定）"""
+        if not bot.check_permission(ctx):
+            await bot.say(texts['no_permission'])
+            return
         logger.info(f'Unregistered channel {channel.name}...')
         bot.remove_channel(channel.id)
         await bot.send_message(bot.get_channel(channel.id), texts["bye"])
 
     @bot.command()
     async def border(event_code=None):
+        """イベントボーダーを表示する"""
         prev = None
         if not event_code:
             try:
@@ -203,11 +215,25 @@ def initialize(config):
                 return
         await bot.say(borderutil.format_with(bd, prev))
 
-    @bot.command(pass_context=True)
-    async def purge(context):
-        channel = context.message.channel
-        await bot.purge(channel)
+    @bot.command(pass_context=True, hidden=True)
+    async def purge(ctx):
+        if not bot.check_permission(ctx):
+            await bot.say(texts['no_permission'])
+            return
+        channel = ctx.message.channel
+        await bot.say(texts['purge_warning'])
+        def confirm(msg):
+            return msg in ['y', 'n']
+        for _ in range(3):
+            resp = await bot.wait_for_message(author=ctx.message.author, check=confirm)
+            if resp == 'y':
+                await bot.say(texts['purge_confirm'])
+            else:
+                await bot.say(texts['purge_canceled'])
+                return
+        deleted = await bot.purge(channel)
         logger.info(f'Deleted {len(deleted)} message(s) from channel {channel.name}')
+
 
     return bot
 
