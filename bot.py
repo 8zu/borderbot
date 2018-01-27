@@ -97,6 +97,7 @@ class BorderBot(commands.Bot):
             else:
                 to_be_removed.add(_id)
         self.channels.difference_update(to_be_removed)
+        self.cache.save('channels.json', list(self.channels))
 
     async def broadcast(self, msg: str):
         for _id in self.channels:
