@@ -110,8 +110,8 @@ class BorderBot(commands.Bot):
         self.channels.save(self.cache)
 
     async def broadcast(self, msg: str):
-        for _id in self.channels:
-            await self.send_message(self.get_channel(_id), msg)
+        for cinfo in self.channels:
+            await self.send_message(self.get_channel(cinfo[0]), msg)
 
     def get_latest_border(self):
         return self.cache.load('border.json')

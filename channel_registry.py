@@ -9,7 +9,7 @@ class ChannelRegistry(object):
         return len(self._data)
 
     def __iter__(self):
-        return iter(list(map(lambda ch: ch[0], self._data)))
+        return iter(self._data)
 
     def add(self, _id, server, name):
         self._data.add((_id, name, server))
