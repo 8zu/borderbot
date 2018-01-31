@@ -7,6 +7,7 @@ import pytoml
 
 import border as borderutil
 from cache import Cache
+from channel_registry import ChannelRegistry
 
 try:
     from discord.ext import commands
@@ -85,7 +86,7 @@ class Fetcher(object):
 class BorderBot(commands.Bot):
     def __init__(self, cache_root):
         self.cache = Cache(cache_root)
-        self.channels = set(self.cache.load("channels.json").get_or([]))
+        self.channels = ChannelRegistry(self.cache.load("channels.json").get_or([]))
         super().__init__(description=description, command_prefix="!")
 
     async def greet_and_prune(self, msg: str):
@@ -93,7 +94,10 @@ class BorderBot(commands.Bot):
         for _id in self.channels:
             ch = self.get_channel(_id)
             if ch:
-                await self.send_message(ch, msg)
+                try:
+                    await self.send_message(ch, msg)
+                except:
+                    to_be_removed.add(_id)
             else:
                 to_be_removed.add(_id)
         self.channels.difference_update(to_be_removed)
@@ -128,18 +132,18 @@ class BorderBot(commands.Bot):
     def check_permission(self, ctx) -> bool:
         return ctx.message.server and ctx.message.author == ctx.message.server.owner
 
-    def add_channel(self, chan: int) -> bool:
+    def add_channel(self, chan, name, server) -> bool:
         if chan not in self.channels:
-            self.channels.add(chan)
-            self.cache.save('channels.json', list(self.channels))
+            self.channels.add(chan, name, server)
+            self.channels.save(self.cache)
             return True
         else:
             return False
 
-    def remove_channel(self, chan: int):
+    def remove_channel(self, chan):
         if chan in self.channels:
             self.channels.remove(chan)
-            self.cache.save('channels.json', list(self.channels))
+            self.channels.save(self.cache)
 
     async def purge(self, chan: discord.Channel) -> int:
         if chan.id in self.channels:
@@ -188,9 +192,9 @@ def initialize(config):
             await bot.say(texts['no_permission'])
             return
         logger.info(f'Registering channel {channel.name}...')
-        if bot.add_channel(channel.id):
+        if bot.add_channel(channel.id, name=channel.name, server=channel.server.name):
             logger.info(f'Registered channel {channel.name} to list.')
-            await bot.send_message(bot.get_channel(channel.id), texts["greet"].format(bot.user.name))
+            await bot.send_message(bot.get_channel(channel.id), texts["greet"])
         else:
             logger.info('Channel already registered. Ignored.')
 
