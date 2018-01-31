@@ -91,17 +91,23 @@ class BorderBot(commands.Bot):
 
     async def greet_and_prune(self, msg: str):
         to_be_removed = set()
-        for _id in self.channels:
+        for cinfo in self.channels:
+            _id = cinfo[0]
             ch = self.get_channel(_id)
             if ch:
                 try:
                     await self.send_message(ch, msg)
-                except:
+                except Exception as ex:
+                    print(f"Channel #{cinfo[1]} on server {cinfo[2]} causes exception:")
+                    print(ex)
+                    print('...Now will be removed')
                     to_be_removed.add(_id)
             else:
+                print(f"Channel #{cinfo[1]} on server {cinfo[2]} does not exist")
+                print('...Now will be pruned')
                 to_be_removed.add(_id)
         self.channels.difference_update(to_be_removed)
-        self.cache.save('channels.json', list(self.channels))
+        self.channels.save(self.cache)
 
     async def broadcast(self, msg: str):
         for _id in self.channels:
