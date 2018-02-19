@@ -98,12 +98,12 @@ class BorderBot(commands.Bot):
                 try:
                     await self.send_message(ch, msg)
                 except Exception as ex:
-                    print(f"Channel #{cinfo[1]} on server {cinfo[2]} causes exception:")
+                    print(f"Channel #{cinfo[2]} on server {cinfo[1]} causes exception:")
                     print(ex)
                     print('...Now will be removed')
                     to_be_removed.add(_id)
             else:
-                print(f"Channel #{cinfo[1]} on server {cinfo[2]} does not exist")
+                print(f"Channel #{cinfo[2]} on server {cinfo[1]} does not exist")
                 print('...Now will be pruned')
                 to_be_removed.add(_id)
         self.channels.difference_update(to_be_removed)
@@ -117,7 +117,7 @@ class BorderBot(commands.Bot):
             try:
                 await self.send_message(ch, msg)
             except:
-                print(f"Channel #{cinfo[1]} on server {cinfo[2]} does not exist")
+                print(f"Channel #{cinfo[2]} on server {cinfo[1]} does not exist")
                 print('...Now will be pruned')
                 to_be_removed.add(_id)
         self.channels.difference_update(to_be_removed)
