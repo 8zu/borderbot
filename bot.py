@@ -45,20 +45,20 @@ class Fetcher(object):
 
         async def task():
             delta = self._till_next_time(minimum=10)
-            print(f'Next update is scheduled in {delta} seconds.')
+            logger.info(f'Next update is scheduled in {delta} seconds.')
             await asyncio.sleep(delta)
             try:
                 ev = borderutil.get_event_metadata()
                 if not ev.is_active:
-                    print(f'Event {ev.id} is not active at this point.')
+                    logger.info(f'Event {ev.id} is not active at this point.')
                 elif not ev.has_border:
-                    print("The active event doesn't have borde")
+                    logger.info("The active event doesn't have border")
                 else:
                     bd = ev.fetch_border()
                     await self.bot.update(bd)
-                    print('Update succeeds!')
+                    logger.info('Update succeeds!')
             except IOError as ex:
-                print('Connection error: ' + str(ex) + f'. Retry in {retry} seconds.')
+                logger.error('Connection error: ' + str(ex) + f'. Retry in {retry} seconds.')
                 await asyncio.sleep(retry)
             asyncio.ensure_future(task())
 
@@ -98,13 +98,13 @@ class BorderBot(commands.Bot):
                 try:
                     await self.send_message(ch, msg)
                 except Exception as ex:
-                    print(f"Channel #{cinfo[2]} on server {cinfo[1]} causes exception:")
-                    print(ex)
-                    print('...Now will be removed')
+                    logger.error(f"Channel #{cinfo[2]} on server {cinfo[1]} causes exception:")
+                    logger.error(ex)
+                    logger.error('...Now will be removed')
                     to_be_removed.add(_id)
             else:
-                print(f"Channel #{cinfo[2]} on server {cinfo[1]} does not exist")
-                print('...Now will be pruned')
+                logger.error(f"Channel #{cinfo[2]} on server {cinfo[1]} does not exist")
+                logger.error('...Now will be pruned')
                 to_be_removed.add(_id)
         self.channels.difference_update(to_be_removed)
         self.channels.save(self.cache)
@@ -117,8 +117,8 @@ class BorderBot(commands.Bot):
             try:
                 await self.send_message(ch, msg)
             except:
-                print(f"Channel #{cinfo[2]} on server {cinfo[1]} does not exist")
-                print('...Now will be pruned')
+                logger.error(f"Channel #{cinfo[2]} on server {cinfo[1]} does not exist")
+                logger.error('...Now will be pruned')
                 to_be_removed.add(_id)
         self.channels.difference_update(to_be_removed)
         self.channels.save(self.cache)
