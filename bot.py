@@ -199,7 +199,11 @@ def initialize(config):
         print(f'registered to post in {registered} channels')
         print()
 
-        await bot.greet_and_prune(texts['recover'].format(bot.user.name))
+        if osp.exists('announcement.txt'):
+            announce = '```\n' + open('announcement.txt').read() + '```'
+            await bot.greet_and_prune(announce)
+        else:
+            await bot.greet_and_prune(texts['recover'].format(bot.user.name))
 
     @bot.command(pass_context=True)
     async def add_channel(ctx, channel: discord.Channel):
