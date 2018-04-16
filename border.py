@@ -5,6 +5,8 @@ from datetime import datetime
 import pytz
 import requests as req
 
+credits = "データー提供： @imas_ml_td"
+
 # [theater-gate] website url
 event_url = "https://otomestorm.anzu.work/events"
 
@@ -128,6 +130,7 @@ def format_with(border, prev=None):
     lines = ['```',
              border['metadata']['name'],
              timeleft,
+             credits,
              '',
              now.strftime(format_string_simple)]
     maxlen = len(str(max(borders.keys()))) + 8 + len('{:,}'.format(max(borders.values())))
