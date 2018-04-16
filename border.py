@@ -9,7 +9,7 @@ import requests as req
 event_url = "https://otomestorm.anzu.work/events"
 
 # border data api url without defined event code
-json_api_url = "https://otomestorm.anzu.work/events/{}/rankings/event_point"
+json_api_url = "https://otomestorm.anzu.work/events/{}/rankings/event_point?special_token={}"
 
 # helper
 Event_type_with_border = [3, 4]
@@ -43,10 +43,10 @@ class EventRecord(object):
         has_border = "Has borders" if self.has_border else "Doesn't have borders"
         return f"Event #{self.id}: {self.name}\nstarts {starts}\nends {ends}\n{active}\n{has_border}"
 
-    def fetch_border(self):
+    def fetch_border(self, secret_token):
         if not self.has_border:
             raise ValueError("This event does not have border")
-        actual_api_url = json_api_url.format(self.id)
+        actual_api_url = json_api_url.format(self.id, secret_token)
         res = req.get(actual_api_url)
         if res.status_code == 200:
             obj = json.loads(res.text)

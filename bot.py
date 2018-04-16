@@ -39,8 +39,12 @@ def get_config(path):
 
 
 class Fetcher(object):
-    def __init__(self, bot, delay=5, retry=30):
+    def __init__(self, bot, secret_token, delay=5, retry=30):
         self.bot = bot
+        self.api_token = secret_token
+        if not secret_token:
+            logger.error("API token is not filled in! Shutting down now...")
+            sys.exit(1)
         self.delay = self._parse_delay(delay)
 
         async def task():
@@ -54,7 +58,7 @@ class Fetcher(object):
                 elif not ev.has_border:
                     logger.info("The active event doesn't have border")
                 else:
-                    bd = ev.fetch_border()
+                    bd = ev.fetch_border(self.secret_token)
                     await self.bot.update(bd)
                     logger.info('Update succeeds!')
             except IOError as ex:
@@ -84,8 +88,9 @@ class Fetcher(object):
 
 
 class BorderBot(commands.Bot):
-    def __init__(self, cache_root):
+    def __init__(self, cache_root, secret_token):
         self.cache = Cache(cache_root)
+        self.secret_token = secret_token
         self.channels = ChannelRegistry(self.cache.load("channels.json").get_or([]))
         super().__init__(description=description, command_prefix="!")
 
@@ -141,7 +146,7 @@ class BorderBot(commands.Bot):
         if not bd:
             logger.info(f'Event {event_code} is not in cache, fetch now')
             ev = borderutil.get_event_metadata(event_code)
-            bd = ev.fetch_border()
+            bd = ev.fetch_border(self.secret_token)
             self.cache.save(filename, borderutil.serialize(bd))
         return bd
 
@@ -179,8 +184,8 @@ class BorderBot(commands.Bot):
 
 
 def initialize(config):
-    bot = BorderBot(config['cache_root'])
-    _ = Fetcher(bot, config['delay'])
+    bot = BorderBot(config['cache_root'], config['api_token'])
+    _ = Fetcher(bot, config['api_token'], config['delay'])
     texts = get_config(text_path)['jpn']
 
     @bot.event
@@ -275,5 +280,8 @@ def initialize(config):
 
 if __name__ == '__main__':
     config = get_config(config_path)
+    if not config['token']:
+        logger.error("Token is not filled in! Shutting down now...")
+        sys.exit(1)
     border_bot = initialize(config)
     border_bot.run(config['token'])
