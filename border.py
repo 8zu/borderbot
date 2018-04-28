@@ -81,7 +81,7 @@ def get_event_metadata(event_code=None):
             ev = first(filter(lambda ev: ev['event_type'] in Event_type_with_border, \
                             reversed(evs)))
         else:
-            ev = first(filter(lambda ev: ev['event_id'] == event_code, evs))
+            ev = first(filter(lambda ev: ev['event_id'] == int(event_code), evs))
         if not ev:
             raise IOError('Could not find event with border')
         return EventRecord(ev['event_id'],
@@ -92,7 +92,7 @@ def get_event_metadata(event_code=None):
     elif res.ok:
         raise IOError("Error 404. Event list not found")
     else:
-        raise IOError(str(res.))
+        raise IOError(str(res.exn))
 
 
 def get_datetime(s):
