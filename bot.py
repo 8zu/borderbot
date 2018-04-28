@@ -3,20 +3,17 @@ import logging
 import os.path as osp
 import sys
 
-import pytoml
-
 import border as borderutil
 from cache import Cache
 from channel_registry import ChannelRegistry
 
 try:
+    import pytoml
     from discord.ext import commands
     import discord
 except ImportError:
-    print("Discord.py is not installed.\n"
-          "Consult the guide for your operating system "
-          "and do ALL the steps in order.\n"
-          "https://twentysix26.github.io/Red-Docs/\n")
+    print("Some modules are not installed. Please do:")
+    print("\tpip install -r requirements.txt")
     sys.exit(1)
 
 logging.basicConfig(level=logging.INFO)
