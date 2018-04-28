@@ -3,15 +3,17 @@ from copy import deepcopy
 from datetime import datetime
 
 import pytz
-import requests as req
+from api import APIEndpoint
 
 credits = "データー提供： @imas_ml_td"
 
 # [theater-gate] website url
 event_url = "https://otomestorm.anzu.work/events"
 
+event_api = APIEndpoint(event_url)
+
 # border data api url without defined event code
-json_api_url = "https://otomestorm.anzu.work/events/{}/rankings/event_point?special_token={}"
+json_api_url = "https://otomestorm.anzu .work/events/{}/rankings/event_point?special_token={}"
 
 # helper
 Event_type_with_border = [3, 4]
@@ -20,6 +22,12 @@ Japan_TZ = pytz.timezone('Japan')
 format_string = "%Y-%m-%dT%H:%M:%S"
 format_string_simple = "%Y-%m-%d %H:%M"
 
+
+def first(iterator):
+    try:
+        return next(iterator)
+    except StopIteration:
+        return None
 
 def get_japan_time(time=None):
     if time:
@@ -48,43 +56,32 @@ class EventRecord(object):
     def fetch_border(self, secret_token):
         if not self.has_border:
             raise ValueError("This event does not have border")
-        actual_api_url = json_api_url.format(self.id, secret_token)
-        res = req.get(actual_api_url)
-        if res.status_code == 200:
-            obj = json.loads(res.text)
-            if not obj['status']:
+        res = event_api[str(self.id)].rankings.event_point.get_json(special_token=secret_token)
+        if res.ok:
+            if not res.val['status']:
                 raise IOError("Error 404: event not found")
-            latest_border = obj['data']['logs'][-1]
+            latest_border = res.val['data']['logs'][-1]
             latest_border['metadata'] = {'name': self.name,
                                          'id': self.id,
                                          'starts': self.starts,
                                          'ends': self.ends}
             return latest_border
         else:
-            raise IOError(f"Error {res.status_code}")
+            raise IOError(str(res.exn))
 
 
 def get_event_metadata(event_code=None):
     """
     :return: packaged event info including event title, start time and end time.
     """
-    res = req.get(event_url)
-    if res.status_code == 200:
-        obj = json.loads(res.text)
-        if not obj['status']:
-            raise IOError("Error 404. Event list not found")
-        evs = obj['data']
-        ev = None
+    res = event_api.get_json()
+    if res.ok and res.val['status']:
+        evs = res.val['data']
         if not event_code:
-            for ev in reversed(evs):
-                if ev['event_type'] in Event_type_with_border:
-                    break
+            ev = first(filter(lambda ev: ev['event_type'] in Event_type_with_border, \
+                            reversed(evs)))
         else:
-            p = lambda ev: int(ev['event_id']) == int(event_code)
-            try:
-                ev = list(filter(p, evs))[0]
-            except:
-                pass
+            ev = first(filter(lambda ev: ev['event_id'] == event_code, evs))
         if not ev:
             raise IOError('Could not find event with border')
         return EventRecord(ev['event_id'],
@@ -92,8 +89,10 @@ def get_event_metadata(event_code=None):
                            ev['schedule']['begin_at'],
                            ev['schedule']['end_at'],
                            ev['event_type'] in Event_type_with_border)
+    elif res.ok:
+        raise IOError("Error 404. Event list not found")
     else:
-        raise IOError(f"Error {res.status_code}")
+        raise IOError(str(res.))
 
 
 def get_datetime(s):
